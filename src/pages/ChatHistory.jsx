@@ -125,6 +125,7 @@ export function ChatHistory() {
 
   // Retorna para o histórico
   const handleReturnToList = () => {
+    setHistoryChats(prevChats => [...prevChats]);
     setActiveView("list");
   };
 
