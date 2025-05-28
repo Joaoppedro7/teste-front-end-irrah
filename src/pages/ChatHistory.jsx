@@ -23,9 +23,9 @@ const mockHistoryChats = [
   },
   {
     id: 3,
-    name: "São Francisco de Assis",
+    name: "Ana Costa ",
     messages: [
-      { text: "Bom dia, tudo bem??", time: new Date(Date.now() - 3600000) }
+      { text: "Boa tarde, gostaria de...", time: new Date(Date.now() - 3600000) }
     ],
   }
 ];
@@ -33,10 +33,10 @@ const mockHistoryChats = [
 export function ChatHistory() {
   //Lista o histórido de chats.
   const [historyChats, setHistoryChats] = useState(mockHistoryChats);
-
   const [filteredChats, setFilteredChats] = useState(historyChats)
 
-  //Qual tela será exibida
+
+  //Informa qual tela será exibida no momento.
   const [activeView, setActiveView] = useState("list");
 
   //Mensagens da conversa iniciada.
@@ -53,7 +53,7 @@ export function ChatHistory() {
   const [isCreatingChat, setIsCreatingChat] = useState(false);
 
   /*Identifica o nome do contato no qual a nova conversa está sendo iniciada
-  Para lista - la em tela
+  Para lista - la em tela no novo chat
   */
   const [newName, setNewName] = useState("");
 
@@ -137,6 +137,7 @@ export function ChatHistory() {
     )
   }
 
+  
   const handleSearchChat = (e) => {
     const value = e.target.value;
 
