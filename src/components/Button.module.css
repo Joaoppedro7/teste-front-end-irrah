@@ -1,14 +1,26 @@
-.button {
-  padding: 0.75rem 1.5rem;
+button {
   font-weight: 600;
-  border: none;
   border-radius: 0.5rem;
-  cursor: pointer;
   transition: background-color 0.4s ease-in-out;
   color: #fff;
+  margin-top: 0.625rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  background-color: #4a90e2;
 }
 
-.button:hover.primary {
+button:hover:enabled {
+  background-color: #357abd;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover.primary {
   background-color: #666;
   color: #f1f1f1;
 }

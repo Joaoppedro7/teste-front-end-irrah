@@ -33,9 +33,10 @@ const mockHistoryChats = [
 export function ChatHistory() {
   //Lista o histórido de chats.
   const [historyChats, setHistoryChats] = useState(mockHistoryChats);
+
   const [filteredChats, setFilteredChats] = useState(historyChats)
 
-
+  //Qual tela será exibida
   const [activeView, setActiveView] = useState("list");
 
   //Mensagens da conversa iniciada.
@@ -46,26 +47,58 @@ export function ChatHistory() {
 
 
   //Armazena o texto digitado no input de mensagem.
-
   const [inputMessage, setInputMessage] = useState("");
 
+  //Identifica se o usuário está iniciando um novo chat
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  /*Identifica o nome do contato no qual a nova conversa está sendo iniciada
+  Para lista - la em tela
+  */
   const [newName, setNewName] = useState("");
+
 
   useEffect(() => {
     setFilteredChats(historyChats);
   }, [historyChats])
 
-  // Adiciona a mensagem digitada, à nova conversa
-  const handleAddMessage = () => {
 
-    const newMessage = {
+  // Adiciona a mensagem digitada à nova conversa, com a resposta automática do 'bot'
+  const handleAddMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage = {
       text: inputMessage,
       time: new Date(),
+      sender: "user",
     };
-    setTempMessages([...tempMessages, newMessage]);
+
+    setTempMessages(prev => [...prev, userMessage]);
     setInputMessage("");
+
+    try {
+      const response = await fetch("https://api-random.vercel.app/");
+      const data = await response.json();
+
+      const botMessage = {
+        text: data.mensage,
+        time: new Date(),
+        sender: "bot",
+      };
+
+      setTempMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage = {
+        text: "Erro ao obter a resposta.",
+        time: new Date(),
+        sender: "bot",
+      };
+
+      setTempMessages(prev => [...prev, errorMessage]);
+    }
   };
+
+
 
   // Finaliza a nova conversa e a exibe no histórico
   const handleEndChat = () => {
@@ -96,6 +129,7 @@ export function ChatHistory() {
   };
 
 
+  //Filtra os chats de acordo com o name de cada contato
   function filterChats(chats, query) {
     const searchLowerCase = query.toLowerCase();
 
@@ -115,62 +149,63 @@ export function ChatHistory() {
 
 
   // Formulário para preencher o nome do contato, quando clicado no botão de "+ Nova conversa"
-
   if (isCreatingChat) {
     return (
-      <div className={styles.newchat}>
-        <input
-          type="text"
-          placeholder="Nome do contato"
-          required
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault;
-              setActiveView("chat");
-              setIsCreatingChat(false);
-            }
-          }}
-        />
-
-        <div className={styles.ChatContainer}>
-          <Button
-            disabled={!newName.trim()}
-            onClick={() => {
-              setIsCreatingChat(false);
-              setActiveView('chat');
+      <div className={styles.newChatContainer}>
+        <div className={styles.newchat}>
+          <input
+            type="text"
+            placeholder="Nome do contato"
+            required
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault;
+                setActiveView("chat");
+                setIsCreatingChat(false);
+              }
             }}
-          >
-            {'Iniciar conversa'}
-          </Button>
-          <div className={styles.iconBackContainer}>
+          />
+
+          <div className={styles.ChatContainer}>
             <Button
-              className={styles.backButton}
+              disabled={!newName.trim()}
               onClick={() => {
                 setIsCreatingChat(false);
-                setNewName('')
+                setActiveView('chat');
               }}
             >
-              {<svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>}
-              {'Retornar'}
+              {'Iniciar conversa'}
             </Button>
+            <div className={styles.iconBackContainer}>
+              <Button
+                className={styles.backButton}
+                onClick={() => {
+                  setIsCreatingChat(false);
+                  setNewName('')
+                }}
+              >
+                {<svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>}
+                {'Retornar'}
+              </Button>
+            </div>
           </div>
-        </div>
-      </div >
+        </div >
+      </div>
     );
 
   }
@@ -178,59 +213,67 @@ export function ChatHistory() {
   // Após formulário de contato preenchido, ao clicar em "Iniciar conversa", abre tela de novo chat
   if (activeView === "chat") {
     return (
-      <div className={styles.newchat}>
-        <div>
-          <div className={styles.newMessage}>
-            <div className={styles.profile}>
-              <img className={styles.profilePicture} src={profilePicture} />
-              <span className={styles.contact}>{newName}</span>
-            </div>
-            {tempMessages.map((msg, index) => (
-              <div className={styles.conversation} key={index}>
-                <p>{msg.text}</p>
-                <span>{msg.time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+      <div className={styles.newChatContainer}>
+        <div className={styles.newchat}>
+          <div>
+            <div className={styles.newMessage}>
+              <div className={styles.profile}>
+                <img className={styles.profilePicture} src={profilePicture} />
+                <span className={styles.contact}>{newName}</span>
               </div>
-            ))}
-          </div>
+              {tempMessages.map((msg, index) => (
+                <div
+                  className={`${styles.conversation} ${msg.sender === "bot" ? styles.botMessage : styles.userMessage
+                    }`}
+                  key={index}
+                >
+                  <p>{msg.text}</p>
+                  <span>{msg.time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+              ))}
 
-          <textarea
-            value={inputMessage}
-            placeholder="Digite uma mensagem"
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddMessage();
-              }
-            }}
-          />
-          <div className={styles.buttonsNewChat}>
-            <Button
-              disabled={!inputMessage.trim()}
-              onClick={handleAddMessage}
-            >
-              {'Enviar'}
-            </Button>
-            <Button
-              className={styles.backButton}
-              onClick={handleEndChat}
-            >
-              {<svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+
+            </div>
+
+            <textarea
+              value={inputMessage}
+              placeholder="Digite uma mensagem"
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddMessage();
+                }
+              }}
+            />
+            <div className={styles.buttonsNewChat}>
+              <Button
+                disabled={!inputMessage.trim()}
+                onClick={handleAddMessage}
               >
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>}
-              {'Retornar'}
-            </Button>
+                {'Enviar'}
+              </Button>
+              <Button
+                className={styles.backButton}
+                onClick={handleEndChat}
+              >
+                {<svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>}
+                {'Retornar ao histórico'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -240,40 +283,47 @@ export function ChatHistory() {
   // Tela de visualização de uma conversa listada no histórico
   if (activeView === "view" && selectedChat) {
     return (
-      <div className={styles.newchat}>
-        <div className={styles.viewProfileChats}>
-          <img className={styles.profilePicture} src={profilePicture} />
-          <h2>{selectedChat.name}</h2>
-        </div>
-
-        <div className={styles.viewChatContainer}>
-          <div >
-            {selectedChat.messages.map((msg, index) => (
-              <div className={styles.conversation} key={index}>
-                <p>{msg.text}</p>
-                <span>{msg.time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-              </div>
-            ))}
+      <div className={styles.newChatContainer}>
+        <div className={styles.newchat}>
+          <div className={styles.viewProfileChats}>
+            <img className={styles.profilePicture} src={profilePicture} />
+            <h2>{selectedChat.name}</h2>
           </div>
-          <button className={styles.backButton} onClick={handleReturnToList}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+
+          <div className={styles.viewChatContainer}>
+            <div className={styles.newMessage} >
+              {selectedChat.messages.map((msg, index) => (
+                <div className={`${styles.conversation} ${msg.sender === "bot" ? styles.botMessage : styles.userMessage
+                  }`}
+                  key={index}>
+                  <p>{msg.text}</p>
+                  <span>{msg.time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+              ))}
+            </div>
+            <Button
+              className={styles.backButton}
+              onClick={handleReturnToList}
             >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-            Retornar ao histórico
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              {'Retornar'}
+            </Button>
+          </div >
         </div >
-      </div >
+      </div>
     );
   }
 
